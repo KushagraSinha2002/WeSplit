@@ -12,11 +12,12 @@ struct ContentView: View {
     @State private var numberOfPeople = 2
     @State private var tipPercentage = 20
     @FocusState private var amountIsFocused: Bool
+    @State private var textNumberOfPeople = ""
     
     let tipPercentages = [10, 15, 20, 25, 0]
     
     var totalPerPerson: Double {
-        let peopleCount = Double(numberOfPeople + 2)
+        let peopleCount = Double(textNumberOfPeople) ?? 1
         let tipSelection = Double(tipPercentage)
         
         let tipValue = checkAmount / 100 * tipSelection
@@ -26,21 +27,44 @@ struct ContentView: View {
         return amountPerPerson
     }
     
+    var grandTotal: Double {
+        let tipSelection = Double(tipPercentage)
+        let tip = checkAmount / 100 * tipSelection
+        let totalAmount = checkAmount + tip
+        
+        return totalAmount
+    }
+    
+    var tipPerPerson: Double {
+        let peopleCount = Double(textNumberOfPeople) ?? 1
+        let tipSelection = Double(tipPercentage)
+        let tipValue = checkAmount / 100 * tipSelection
+        let grandTotal = checkAmount + tipValue
+        let tipPerPerson = (grandTotal - checkAmount) / peopleCount
+        
+        return tipPerPerson
+    }
+    
+    
+    
     var body: some View {
         
         NavigationView {
             Form {
                 Section {
                     TextField("Amount", value: $checkAmount, format:
-                        .currency(code: Locale.current.currencyCode ?? "INR"))
+                                    .currency(code: "INR"))
                         .keyboardType(.decimalPad)
                         .focused($amountIsFocused)
                     
-                    Picker("Number of people", selection: $numberOfPeople) {
-                        ForEach(2..<100) {
-                            Text("\($0) people")
-                        }
-                    }
+                    TextField("Number of People", text: $textNumberOfPeople)
+                        .keyboardType(.decimalPad)
+                        .focused($amountIsFocused)
+//                    Picker("Number of people", selection: $numberOfPeople) {
+//                        ForEach(2..<100) {
+//                            Text("\($0) people")
+//                        }
+//                    }
                 }
                 
                 Section {
@@ -56,15 +80,33 @@ struct ContentView: View {
                 }
                 
                 Section {
+                    Text(tipPerPerson, format:
+                                .currency(code: "INR"))
+                } header: {
+                    Text("Tip per person:")
+                }
+                
+                Section {
                     Text(totalPerPerson, format:
-                                .currency(code: Locale.current.currencyCode ?? "INR"))
+                                .currency(code: "INR"))
                 } header: {
                     Text("Amount per person")
                 }
+                
+                Section {
+                    Text(grandTotal, format:
+                                .currency(code: "INR"))
+                } header: {
+                    Text("Total amount to be paid :")
+                }
+                
+                
             }
             .navigationTitle("WeSplit")
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    
                     Button("Done") {
                         amountIsFocused = false
                     }
